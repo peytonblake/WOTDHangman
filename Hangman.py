@@ -1,4 +1,8 @@
 from wordOfTheDay import *
+import os
+
+def clear():
+	_ = os.system("cls")
 
 def getWord():
 	raw_html = simple_get('https://www.merriam-webster.com/word-of-the-day')
@@ -15,10 +19,11 @@ def loser(solution, guess):
 	print("YOU LOST!")
 	print("Your guess: ", end="")
 	printList(guess)
-	print("Solution: ", end="")
+	print("Solution:   ", end="")
 	printList(solution)
 
-def printBoard(solution, guess, misses):
+def printBoard(guess, misses, guesses):
+	clear()
 	if misses == 0:
 		print("  ________")
 		print("  |      |")
@@ -83,23 +88,43 @@ def printBoard(solution, guess, misses):
 		print("         |")
 		print("          ")
 
+	if misses != 0:
+		print("You have guessed: ", end="")
+		printList(guesses)
 	printList(guess)
 
 def hangman(wotd):
 	solution = list(wotd)
 	guess = ["_"] * len(solution)
+	guesses = []
 	misses = 0
 	playing = True
 
 	while playing:
-		printBoard(solution, guess, misses)
+		printBoard(guess, misses, guesses)
+		guessing = True
 		letter = input("Make a guess:")
+		
+		while guessing:
+			if letter in guesses:
+				print("You have already guessed that letter, try again!")
+				letter = input("Make a guess:")
+			elif not letter.isalpha():
+				print("That was not a letter, please stick to the alphabet")
+				letter = input("Make a guess:")
+			else:
+				guesses.append(letter)
+				guessing = False
+
 
 		if letter not in solution:
 			misses += 1
 			if misses == 6:
-				printBoard(solution, guess, misses)
+				printBoard(guess, misses, guesses)
 				loser(solution, guess)
+				playAgain = input("Would you like to play again? (y/n)")
+				if playAgain.lower() == "y":
+					hangman(wotd)
 				playing = False
 
 		else:
@@ -108,7 +133,11 @@ def hangman(wotd):
 				guess[i] = letter
 
 		if "_" not in guess:
+			printBoard(guess, misses, guesses)
 			print("You guessed it, you win!!")
+			playAgain = input("Would you like to play again? (y/n)")
+			if playAgain.lower() == "y":
+				hangman(wotd)
 			playing = False
 
 

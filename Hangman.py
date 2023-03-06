@@ -1,9 +1,4 @@
 from wotd import *
-import os
-
-
-def clear():
-    _ = os.system("cls")
 
 
 def printList(l):

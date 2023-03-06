@@ -2,6 +2,7 @@ from requests import get
 from requests.exceptions import RequestException
 from contextlib import closing
 from bs4 import BeautifulSoup
+import os
 
 
 def simple_get(url):
@@ -33,3 +34,14 @@ def getWord():
     soup = BeautifulSoup(raw_html, 'html.parser')
     title = soup.title.text.split()
     return title[4]
+
+
+def playAgain():
+    response = input("Would you like to play again? (y/n)")
+    if response.lower() == "y":
+        return True
+    return False
+
+
+def clear():
+    _ = os.system("cls")

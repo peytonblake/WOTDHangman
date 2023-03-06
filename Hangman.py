@@ -1,16 +1,9 @@
-from wordOfTheDay import *
+from wotd import *
 import os
 
 
 def clear():
     _ = os.system("cls")
-
-
-def getWord():
-    raw_html = simple_get('https://www.merriam-webster.com/word-of-the-day')
-    soup = BeautifulSoup(raw_html, 'html.parser')
-    title = soup.title.text.split()
-    return title[4]
 
 
 def printList(l):
@@ -106,8 +99,8 @@ def playAgain():
     return False
 
 
-def hangman(wotd):
-    solution = list(wotd)
+def hangman(word):
+    solution = list(word)
     guess = ["_"] * len(solution)
     guesses = []
     misses = 0
@@ -134,8 +127,6 @@ def hangman(wotd):
             if misses == 6:
                 printBoard(guess, misses, guesses)
                 loser(solution, guess)
-                if playAgain():
-                    hangman(wotd)
                 playing = False
 
         else:
@@ -147,11 +138,11 @@ def hangman(wotd):
         if "_" not in guess:
             printBoard(guess, misses, guesses)
             print("You guessed it, you win!!")
-            if playAgain():
-                hangman(wotd)
             playing = False
 
 
 if __name__ == "__main__":
-    wotd = getWord().lower()
-    hangman(wotd)
+    word = getWord().lower()
+    hangman(word)
+    while playAgain():
+        hangman(word)

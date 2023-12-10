@@ -1,146 +1,61 @@
-from wordOfTheDay import *
-import os
+import tkinter as tk
+from PIL import ImageTk, Image
 
-def clear():
-	_ = os.system("cls")
+# Create the root window
+root = tk.Tk()
+root.title("Hangman")
+root.geometry("450x400")
 
-def getWord():
-	raw_html = simple_get('https://www.merriam-webster.com/word-of-the-day')
-	soup = BeautifulSoup(raw_html, 'html.parser')
-	title = soup.title.text.split()
-	return title[4]
+# Create a canvas for the hangman image
+canvas = tk.Canvas(root, width=600, height=300)
+canvas.pack()
 
-def printList(l):
-	for i in range(len(l)):
-		print(l[i] + " ", end="")
-	print("")
+# Create a list of image files for each stage of the hanging progression
+# images = [tk.PhotoImage(file=f"hangman{i}.png") for i in range(7)]
+images = [ImageTk.PhotoImage(Image.open(f"hangman{i}.png")) for i in range(7)]
+canvas.create_image(200, 150, image=images[0])
 
-def loser(solution, guess):
-	print("YOU LOST!")
-	print("Your guess: ", end="")
-	printList(guess)
-	print("Solution:   ", end="")
-	printList(solution)
+# Create a label to display the word that the player is trying to guess
+word_label = tk.Label(root, text="_ _ _ _ _", font=("Helvetica", 24))
+word_label.pack()
 
-def printBoard(guess, misses, guesses):
-	clear()
-	if misses == 0:
-		print("  ________")
-		print("  |      |")
-		print("         |")
-		print("         |")
-		print("         |")
-		print("         |")
-		print("         |")
-		print("          ")
-	elif misses == 1:
-		print("  ________")
-		print("  |      |")
-		print("  O      |")
-		print("         |")
-		print("         |")
-		print("         |")
-		print("         |")
-		print("          ")
-	elif misses == 2:
-		print("  ________")
-		print("  |      |")
-		print("  O      |")
-		print("  |      |")
-		print("  |      |")
-		print("         |")
-		print("         |")
-		print("          ")
-	elif misses == 3:
-		print("  ________")
-		print("  |      |")
-		print("  O      |")
-		print("  |/     |")
-		print("  |      |")
-		print("         |")
-		print("         |")
-		print("          ")
-	elif misses == 4:
-		print("  ________")
-		print("  |      |")
-		print("  O      |")
-		print(" \\|/     |")
-		print("  |      |")
-		print("         |")
-		print("         |")
-		print("          ")
-	elif misses == 5:
-		print("  ________")
-		print("  |      |")
-		print("  O      |")
-		print(" \\|/     |")
-		print("  |      |")
-		print(" /       |")
-		print("         |")
-		print("          ")
-	elif misses == 6:
-		print("  ________")
-		print("  |      |")
-		print("  O      |")
-		print(" \\|/     |")
-		print("  |      |")
-		print(" /\\      |")
-		print("         |")
-		print("          ")
+# Create a frame for the letter buttons
+frame = tk.Frame(root)
+frame.pack(fill=tk.X)
 
-	if misses != 0:
-		print("You have guessed: ", end="")
-		printList(guesses)
-	printList(guess)
+# Global variables to keep track of the game state
+word = "hello"
+guesses = set()
+stage = 0
 
-def hangman(wotd):
-	solution = list(wotd)
-	guess = ["_"] * len(solution)
-	guesses = []
-	misses = 0
-	playing = True
-
-	while playing:
-		printBoard(guess, misses, guesses)
-		guessing = True
-		letter = input("Make a guess:")
-		
-		while guessing:
-			if letter in guesses:
-				print("You have already guessed that letter, try again!")
-				letter = input("Make a guess:")
-			elif not letter.isalpha():
-				print("That was not a letter, please stick to the alphabet")
-				letter = input("Make a guess:")
-			else:
-				guesses.append(letter)
-				guessing = False
+# Function to guess a letter
+def guess_letter(letter):
+    global stage
+    if letter in word:
+        # Update the word label with the correct letter
+        for i, c in enumerate(word):
+            if c == letter:
+                word_label.config(text=word_label.cget("text").replace("_", letter, 1))
+        # Check if the player has won the game
+        if "_" not in word_label.cget("text"):
+            word_label.config(text="You won!")
+            for button in frame.winfo_children():
+                button.config(state=tk.DISABLED)
+    else:
+        # Increment the stage number and show the next stage of the hangman image
+        stage += 1
+        canvas.create_image(200, 150, image=images[stage])
+        if stage == 6:
+            # Game over
+            word_label.config(text=f"The word was {word}.")
+            for button in frame.winfo_children():
+                button.config(state=tk.DISABLED)
 
 
-		if letter not in solution:
-			misses += 1
-			if misses == 6:
-				printBoard(guess, misses, guesses)
-				loser(solution, guess)
-				playAgain = input("Would you like to play again? (y/n)")
-				if playAgain.lower() == "y":
-					hangman(wotd)
-				playing = False
+# Create a button for each letter of the alphabet
+for letter in "abcdefghijklmnopqrstuvwxyz":
+    button = tk.Button(frame, text=letter, command=lambda l=letter: guess_letter(l))
+    button.pack(side=tk.LEFT)
 
-		else:
-			correctIndex = [index for (index, item) in enumerate(solution) if item == letter]
-			for i in correctIndex:
-				guess[i] = letter
-
-		if "_" not in guess:
-			printBoard(guess, misses, guesses)
-			print("You guessed it, you win!!")
-			playAgain = input("Would you like to play again? (y/n)")
-			if playAgain.lower() == "y":
-				hangman(wotd)
-			playing = False
-
-
-if __name__ == "__main__":
-	wotd = getWord().lower()
-	hangman(wotd)
+# Run the main loop
+root.mainloop()
